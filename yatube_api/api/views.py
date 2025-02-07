@@ -1,76 +1,92 @@
-# TODO:  Напишите свой вариант
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from .permissions import IsAuthorOrReadOnly
-from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import PermissionDenied
-from posts.models import Group, Post, Follow
+"""Представления для работы с моделями приложения API."""
 
-from .serializers import (PostSerializer, CommentSerializer, GroupSerializer,
-                          FollowSerializer)
-from rest_framework import filters
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from rest_framework import filters, permissions, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
+from posts.models import Comment, Follow, Group, Post
+from .permissions import IsOwnerOrReadOnly
+from .serializers import (
+    CommentSerializer,
+    FollowSerializer,
+    GroupSerializer,
+    PostSerializer,
 
-class PostViewSet(ModelViewSet):
+)
+from .viewsets import CreateListViewSet
+
+
+User = get_user_model()
+
+
+class PostViewSet(viewsets.ModelViewSet):
+    """Представление для модели Post."""
+
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsOwnerOrReadOnly
+    ]
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
+        """Создание записи с указанием автора и группы."""
         serializer.save(author=self.request.user)
 
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Вы не можете изменить чужой пост.')
-        serializer.save()
 
-    def perform_destroy(self, instance):
-        if instance.author != self.request.user:
-            raise PermissionDenied('Вы не можете удалить чужой пост.')
-        instance.delete()
+class CommentViewSet(viewsets.ModelViewSet):
+    """Представление для модели Comment."""
 
-
-class GroupViewSet(ReadOnlyModelViewSet):
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-
-
-class FollowViewSet(ModelViewSet):
-    serializer_class = FollowSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('following__username',)
-    http_method_names = ['get', 'post']
-
-    def get_queryset(self):
-        return Follow.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
-class CommentViewSet(ModelViewSet):
+    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsOwnerOrReadOnly
+    ]
+
+    def get_object_post(self):
+        """Функция для создания поста."""
+        return get_object_or_404(Post, id=self.kwargs.get('post_id'))
 
     def get_queryset(self):
-        post_id = self.kwargs.get('post_id')
-        post = get_object_or_404(Post, id=post_id)
+        """Получение записи авторизированным пользователем."""
+        post = self.get_object_post()
         return post.comments.all()
 
     def perform_create(self, serializer):
+        """Создание записи без указания номера поста и автора в запросе."""
         post_id = self.kwargs.get('post_id')
-        post = get_object_or_404(Post, id=post_id)
-        serializer.save(author=self.request.user, post=post)
+        self.get_object_post()
+        serializer.save(
+            author_id=self.request.user.id,
+            post_id=post_id
+        )
 
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Вы не можете изменить чужой комментарий.')
-        serializer.save()
 
-    def perform_destroy(self, instance):
-        if instance.author != self.request.user:
-            raise PermissionDenied('Вы не можете удалить чужой комментарий.')
-        instance.delete()
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """Представление для модели Group."""
+
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [
+        permissions.AllowAny
+    ]
+
+
+class FollowViewSet(CreateListViewSet):
+    """Представление для модели Follow."""
+
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('following__username',)
+
+    def perform_create(self, serializer):
+        """Создание записи без указания номера поста и автора в запросе."""
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        """Получение записи по фильтру."""
+        return self.request.user.follower.all()

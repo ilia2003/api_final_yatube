@@ -1,5 +1,3 @@
-"""Модуль для отдельных миксинов."""
-
 from rest_framework import viewsets, mixins
 
 

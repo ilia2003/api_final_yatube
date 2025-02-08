@@ -1,5 +1,3 @@
-"""Представления для работы с моделями приложения API."""
-
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, viewsets
@@ -57,11 +55,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Создание записи без указания номера поста и автора в запросе."""
-        post_id = self.kwargs.get('post_id')
+        post = self.kwargs.get('post_id')
         self.get_object_post()
         serializer.save(
             author_id=self.request.user.id,
-            post_id=post_id
+            post=post
         )
 
 

@@ -55,11 +55,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Создание записи без указания номера поста и автора в запросе."""
-        post = self.kwargs.get('post_id')
+        post_id = self.kwargs.get('post_id')
         self.get_object_post()
         serializer.save(
             author_id=self.request.user.id,
-            post=post
+            post_id=post_id
         )
 
 

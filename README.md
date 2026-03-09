@@ -1,75 +1,188 @@
-Проект «API для Yatube»
-Yatube - это социальная сеть, а проект "API для Yatube" предоставляет пользователям возможность взаимодействовать с функционалом платформы через программный интерфейс. Теперь можно публиковать посты, подписываться на авторов и управлять контентом с помощью API-запросов.
+# Yatube API
 
-Реализованы возможности
-Работа с постами: создание, обновление, удаление и получение списка публикаций.
-Работа с комментариями: добавление, редактирование, удаление и просмотр комментариев к постам.
-Просмотр сообществ: получение списка сообществ и их детальной информации.
-Подписки: просмотр подписок, а также возможность подписаться на интересующего автора.
-Авторизация: получение, обновление и проверка JWT-токенов для авторизации.
-Запуск проекта:
-Клонируйте репозиторий и перейдите в папку проекта:
+RESTful API for the **Yatube social network**.  
+The API allows users to interact with the platform programmatically: create posts, comment on publications, subscribe to authors, and retrieve community information.
 
+The project demonstrates backend development with **Django REST Framework**, authentication using **JWT**, and implementation of social platform features.
+
+---
+
+# Features
+
+The API provides the following functionality:
+
+### Posts
+- Create posts
+- Edit posts
+- Delete posts
+- Retrieve a list of posts
+
+### Comments
+- Add comments to posts
+- Edit comments
+- Delete comments
+- View comments for a specific post
+
+### Communities
+- Retrieve a list of communities
+- View community details
+
+### Subscriptions
+- Follow authors
+- View user subscriptions
+
+### Authentication
+- Obtain JWT tokens
+- Refresh access tokens
+- Verify tokens
+
+---
+
+# Tech Stack
+
+Backend:
+
+- Python
+- Django
+- Django REST Framework
+
+Authentication:
+
+- JWT (JSON Web Token)
+
+Tools:
+
+- Git
+- SQLite / PostgreSQL
+
+---
+
+# Architecture
+
+
+Client
+↓
+Django REST API
+↓
+Business Logic
+↓
+Django ORM
+↓
+Database
+
+
+Main entities:
+
+- Users
+- Posts
+- Comments
+- Groups (communities)
+- Subscriptions
+
+---
+
+# Installation
+
+### 1 Clone repository
+
+```bash
 git clone https://github.com/polina-dianova/api_final_yatube.git
-
 cd api_final_yatube
+2 Create virtual environment
 
-Создайте и активируйте виртуальное окружение:
+Linux / MacOS
 
 python3 -m venv env
 source env/bin/activate
-python3 -m pip install --upgrade pip
-Установите зависимости из файла requirements.txt: pip install -r requirements.txt
 
-Выполните миграции базы данных: python3 manage.py migrate
+Windows
 
-Запустите сервер разработки: python3 manage.py runserver
+python -m venv env
+env\Scripts\activate
+3 Upgrade pip
+python -m pip install --upgrade pip
+4 Install dependencies
+pip install -r requirements.txt
+5 Apply migrations
+python manage.py migrate
+6 Run development server
+python manage.py runserver
+API Documentation
 
-После запуска документация API будет доступна по адресу:
-http://localhost:port/redoc/
+After starting the server, interactive API documentation will be available at:
 
-Примеры запросов:
-POST-запрос с токеном, добавление новой публикации в коллекцию публикаций.
+http://localhost:8000/redoc/
+API Examples
+Create a Post
 
-POST http://localhost:port/api/v1/posts/
+Request:
+
+POST /api/v1/posts/
+
+Body:
 
 {
-  "text": "Привет, это мой первый пост!",
+  "text": "Hello, this is my first post!",
   "group": 1
 }
-Ответ:
+
+Response:
 
 {
-    "id": 12,
-    "author": "admin",
-    "text": "Привет, это мой первый пост!",
-    "pub_date": "2025-01-10T15:30:00Z",
-    "image": null,
-    "group": 1
+  "id": 12,
+  "author": "admin",
+  "text": "Hello, this is my first post!",
+  "pub_date": "2025-01-10T15:30:00Z",
+  "image": null,
+  "group": 1
 }
-GET-запрос, получение информации о сообществе по id=2.
+Get Community Information
 
-GET http://localhost:port/api/v1/groups/2/
+Request:
 
-Ответ:
+GET /api/v1/groups/2/
+
+Response:
 
 {
-    "id": 1,
-    "title": "Спорт",
-    "slug": "sport",
-    "description": "Группа для обсуждения спортивных событий."
+  "id": 1,
+  "title": "Sport",
+  "slug": "sport",
+  "description": "Group for discussing sports events."
 }
-POST-запрос, подписка авторизованного пользователя user=admin от имени которого сделан запрос на автора интересующей публикации following=john_doe.
+Follow an Author
 
-POST http://localhost:port/api/v1/follow/
+Request:
+
+POST /api/v1/follow/
+
+Body:
 
 {
   "following": "john_doe"
 }
-Ответ:
+
+Response:
 
 {
-    "id": 4,
-    "user": "admin",
-    "following": "john_doe"
+  "id": 4,
+  "user": "admin",
+  "following": "john_doe"
 }
+Development Purpose
+
+This project demonstrates:
+
+REST API design
+
+Authentication with JWT
+
+Social network backend logic
+
+Django REST Framework usage
+
+API documentation with ReDoc
+
+Author
+
+Ilya Fedorenko
